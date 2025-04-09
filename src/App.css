@@ -55,7 +55,7 @@ h1 {
 
 .chessboard {
   /* Dynamically sized board based on viewport height/width */
-  /* Max size 520px, min size 280px, scales with 90% of smallest viewport dimension */
+  /* Max size 600px, min size 280px, scales with 90% of smallest viewport dimension */
   --board-size: clamp(280px, 90vmin, 600px);
   width: var(--board-size);
   height: var(--board-size);
@@ -82,32 +82,42 @@ h1 {
 }
 
 /* === Piece Styling (SVG) === */
+/* Wrapper div for the piece SVG for drag handling */
+.piece-container {
+    width: 85%;
+    height: 85%;
+    display: flex; /* Ensure SVG scales within */
+    justify-content: center;
+    align-items: center;
+}
+.piece-container.hidden { /* Style the container when hidden */
+    opacity: 0.3;
+    transform: scale(0.95);
+    transition: opacity 0.1s ease-out, transform 0.1s ease-out;
+}
+
+/* The actual piece element */
 .piece {
-  /* Size relative to the square (which is 1/8th of board size) */
-  width: 85%;
-  height: 85%;
+  width: 100%; /* Fill the container */
+  height: 100%;
   user-select: none;
   transition: opacity 0.2s ease-out, transform 0.2s ease-out;
   z-index: 10;
   pointer-events: none; /* Let square handle events */
+  display: flex; /* Ensure SVG scales */
+  justify-content: center;
+  align-items: center;
 }
 
 .piece svg {
   width: 100%;
   height: 100%;
   display: block; /* Remove extra space below inline SVGs */
-  /* Drop shadow for depth */
-  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
 }
 
-/* Colors will be set via fill in the theme */
+/* Colors will be set via fill/stroke in the theme */
 .piece.white-piece svg { }
 .piece.black-piece svg { }
-
-.piece.hidden {
-  opacity: 0.3;
-  transform: scale(0.95);
-}
 
 /* === Interaction & Status === */
 .status-bar {
@@ -120,8 +130,9 @@ h1 {
   align-items: center;
   font-size: clamp(0.75rem, 2vmin, 0.9rem);
   box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
   flex-shrink: 0; /* Prevent shrinking */
+  border: 1px solid transparent; /* Add border property for transitions */
 }
 .status-bar .status-message {
   font-weight: bold;
@@ -131,9 +142,10 @@ h1 {
 }
 
 .square.selected {
-  outline: max(2px, 0.5vmin) solid rgba(255, 215, 0, 0.8); /* Responsive outline */
+  outline: max(2px, 0.5vmin) solid; /* Color set by theme */
   outline-offset: calc(-1 * max(2px, 0.5vmin));
   z-index: 5;
+  transition: outline-color 0.3s ease; /* Theme transition */
 }
 
 .legal-move-indicator {
@@ -144,15 +156,20 @@ h1 {
   border-radius: 50%;
   pointer-events: none;
   opacity: 0.4;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease; /* Theme transition */
   z-index: 1; /* Below pieces */
 }
+.legal-move-indicator.capture {
+    /* Optional: Style capture indicators differently */
+    /* background-color: rgba(200, 0, 0, 0.3); */
+}
+
 
 .square.drag-over-valid {
-  background-color: rgba(30, 180, 30, 0.3);
+  /* background-color set by theme */
 }
 .square.drag-over-invalid {
-  background-color: rgba(220, 40, 40, 0.3);
+  /* background-color set by theme */
   cursor: no-drop;
 }
 
@@ -168,17 +185,19 @@ h1 {
   flex-shrink: 1; /* Allow shrinking */
   min-width: 30px; /* Ensure it doesn't collapse completely */
 }
-/* Horizontal Layout (Default) */
+/* Horizontal Layout (Default for Mobile) */
 .captured-pieces.horizontal {
     flex-direction: row;
     flex-wrap: wrap; /* Wrap pieces */
     align-content: flex-start;
     justify-content: flex-start;
-    height: clamp(40px, 10vmin, 60px); /* Fixed height for horizontal */
-    width: var(--board-size); /* Match board width */
+    height: auto; /* Auto height */
+    min-height: 30px;
+    width: 95%; /* Slightly less than board on mobile */
+    max-width: var(--board-size);
     margin: 5px 0; /* Add margin when horizontal */
 }
-/* Vertical Layout (Used in row flex) */
+/* Vertical Layout (Used in row flex for Desktop) */
 .captured-pieces.vertical {
     flex-direction: column;
     flex-wrap: nowrap;
@@ -186,6 +205,7 @@ h1 {
     justify-content: flex-start;
     width: clamp(40px, 10vmin, 60px); /* Fixed width for vertical */
     height: var(--board-size); /* Match board height */
+    margin: 0; /* No extra margin */
 }
 
 .captured-pieces .piece-icon {
@@ -193,10 +213,18 @@ h1 {
   width: clamp(16px, 4vmin, 24px);
   height: clamp(16px, 4vmin, 24px);
   opacity: 0.9;
+  display: flex; /* Ensure SVG scales */
+  justify-content: center;
+  align-items: center;
 }
 .captured-pieces .piece-icon svg {
-  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.2));
+  /* Drop shadow defined in theme */
 }
+
+/* Classes to help position captured pieces on mobile */
+.captured-pieces.captured-by-black { /* Pieces White lost */ }
+.captured-pieces.captured-by-white { /* Pieces Black lost */ }
+
 
 /* === Controls === */
 .controls {
@@ -235,11 +263,75 @@ h1 {
 }
 
 /* ================================== */
+/*   THEME: Minimalist Green (Image)  */
+/* ================================== */
+.theme-minimalist-green { background-color: #2c2f33; } /* Dark grey page background */
+.theme-minimalist-green h1 { color: #bdbdbd; }
+.theme-minimalist-green .status-bar { background-color: #404040; color: #bdbdbd; border: 1px solid #555;}
+.theme-minimalist-green .chessboard { border-color: #1a1a1a; } /* Very dark border */
+
+/* Board Colors from Image */
+.theme-minimalist-green .square.light { background-color: #868b65; } /* Lighter olive/desat green */
+.theme-minimalist-green .square.dark { background-color: #4a483c; }  /* Darker olive/brown green */
+
+.theme-minimalist-green .legal-move-indicator { background-color: rgba(255, 255, 255, 0.15); } /* Subtle light dot */
+
+/* Piece SVG Colors (Fill/Stroke) */
+.theme-minimalist-green .piece svg {
+     filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4)); /* Add subtle shadow for definition */
+}
+.theme-minimalist-green .piece.white-piece svg {
+    /* CurrentColor is applied via React.cloneElement */
+    color: #e0e0d0; /* Light beige/off-white from image */
+}
+.theme-minimalist-green .piece.black-piece svg {
+    /* Use dark square color for contrast, image uses same light color which is bad */
+    color: #4a483c;
+}
+
+
+/* Drag/Selection Styles */
+.theme-minimalist-green .square.selected {
+  outline-color: rgba(255, 255, 255, 0.5); /* Brighter outline */
+}
+.theme-minimalist-green .square.drag-over-valid {
+    background-color: rgba(189, 195, 158, 0.4); /* Faded light square color */
+}
+.theme-minimalist-green .square.drag-over-invalid {
+     background-color: rgba(110, 54, 54, 0.4); /* Dark redish tint */
+}
+
+
+/* Captured Pieces Area */
+.theme-minimalist-green .captured-pieces { background-color: #3a3a3a; }
+.theme-minimalist-green .captured-pieces .piece-icon svg {
+    filter: drop-shadow(0.5px 0.5px 1px rgba(0,0,0,0.3)); /* Slightly smaller shadow */
+}
+
+
+/* Buttons */
+.theme-minimalist-green .control-button {
+    background-color: #5a5a5a;
+    color: #e0e0e0;
+    border-color: #777;
+}
+.theme-minimalist-green .control-button:hover {
+    background-color: #6a6a6a;
+    border-color: #888;
+}
+.theme-minimalist-green .control-button:disabled {
+    background-color: #4a4a4a;
+    color: #888;
+    border-color: #666;
+}
+
+
+/* ================================== */
 /*       THEME: Chess.com Style       */
 /* ================================== */
 .theme-chesscom { background-color: #302E2C; } /* Dark background */
 .theme-chesscom h1 { color: #cccccc; }
-.theme-chesscom .status-bar { background-color: #444240; color: #cccccc; }
+.theme-chesscom .status-bar { background-color: #444240; color: #cccccc; border-color: #555; }
 .theme-chesscom .chessboard { border-color: #4a4846; }
 
 /* Board Colors */
@@ -249,12 +341,30 @@ h1 {
 .theme-chesscom .legal-move-indicator { background-color: rgba(40, 40, 40, 0.4); }
 
 /* SVG Piece Colors */
-.theme-chesscom .piece.white-piece svg { fill: #FFFFFF; }
-.theme-chesscom .piece.black-piece svg { fill: #202020; } /* Very dark grey/black */
+.theme-chesscom .piece svg {
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+}
+.theme-chesscom .piece.white-piece svg {
+    color: #FFFFFF;
+}
+.theme-chesscom .piece.black-piece svg {
+    color: #202020; /* Very dark grey/black */
+}
+
+/* Drag/Selection */
+.theme-chesscom .square.selected {
+  outline-color: rgba(255, 215, 0, 0.8); /* Gold */
+}
+.theme-chesscom .square.drag-over-valid {
+    background-color: rgba(30, 180, 30, 0.3);
+}
+.theme-chesscom .square.drag-over-invalid {
+    background-color: rgba(220, 40, 40, 0.3);
+}
 
 /* Captured Pieces Area */
 .theme-chesscom .captured-pieces { background-color: #3a3836; }
-.theme-chesscom .captured-pieces .piece-icon svg { /* Same fill as board pieces */ }
+.theme-chesscom .captured-pieces .piece-icon svg { /* Inherits piece colors */ }
 
 /* Buttons */
 .theme-chesscom .control-button {
@@ -271,11 +381,6 @@ h1 {
     color: #888;
     border-color: #555250;
 }
-
-/* === (Keep other theme definitions below if desired) === */
-/* .theme-light { ... } */
-/* .theme-dark { ... } */
-/* .theme-classic { ... } */
 
 
 /* === Responsive Adjustments === */
@@ -308,15 +413,14 @@ h1 {
      .captured-pieces.vertical { display: none; } /* Hide vertical */
      .captured-pieces.horizontal {
          display: flex;
-         order: -1; /* Default: Black's captures above board */
+         order: -1; /* Default: Place above board */
          width: 95%; /* Slightly less than board */
          max-width: var(--board-size);
-         height: auto; /* Auto height */
-         min-height: 30px;
-         margin-bottom: 5px;
      }
-      .captured-pieces.captured-by-black { order: -1; margin-bottom: 5px; margin-top: 0;} /* Black's captures (White lost) */
-      .captured-pieces.captured-by-white { order: 1; margin-top: 5px; margin-bottom: 0;} /* White's captures (Black lost) */
+      /* Place Black's captures (White lost) above */
+      .captured-pieces.captured-by-black { order: -1; margin-bottom: 5px; margin-top: 0;}
+       /* Place White's captures (Black lost) below */
+      .captured-pieces.captured-by-white { order: 1; margin-top: 5px; margin-bottom: 0;}
 
       .board-container { order: 0; } /* Board is central */
 }
@@ -328,77 +432,4 @@ h1 {
      .captured-pieces.horizontal { display: none; }
      .captured-pieces.vertical { display: flex; }
      h1 { display: none; } /* Hide title to save space */
-}
-/* === (Keep existing global styles, layout styles, .piece, .square, etc.) === */
-/* === (Keep existing responsive @media queries) === */
-/* === (Keep other themes like .theme-chesscom if desired) === */
-
-
-/* ================================== */
-/*   THEME: Minimalist Green (Image)  */
-/* ================================== */
-.theme-minimalist-green { background-color: #2c2f33; } /* Dark grey page background */
-.theme-minimalist-green h1 { color: #bdbdbd; }
-.theme-minimalist-green .status-bar { background-color: #404040; color: #bdbdbd; border: 1px solid #555;}
-.theme-minimalist-green .chessboard { border-color: #1a1a1a; } /* Very dark border */
-
-/* Board Colors from Image */
-.theme-minimalist-green .square.light { background-color: #868b65; } /* Lighter olive/desat green */
-.theme-minimalist-green .square.dark { background-color: #4a483c; }  /* Darker olive/brown green */
-
-.theme-minimalist-green .legal-move-indicator { background-color: rgba(255, 255, 255, 0.15); } /* Subtle light dot */
-
-/* Piece SVG Colors (Fill) */
-.theme-minimalist-green .piece.white-piece svg {
-    fill: #e0e0d0; /* Light beige/off-white from image */
-    stroke: #e0e0d0; /* Use same color for stroke on stroked pieces like Knight */
-    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5)); /* Enhance visibility */
-}
-.theme-minimalist-green .piece.black-piece svg {
-    /* Using dark square color for black pieces for contrast */
-    /* The image itself seems to use the *same* light color, which is bad for gameplay */
-    fill: #4a483c;
-    stroke: #4a483c; /* Use same color for stroke on stroked pieces */
-     filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.7));
-}
-
-/* Slight inset/shadow effect on pieces (optional) */
-.theme-minimalist-green .piece svg {
-   /* filter: drop-shadow(0.5px 1px 1px rgba(0,0,0,0.6)); */
-}
-
-/* Drag/Selection Styles */
-.theme-minimalist-green .square.selected {
-  outline: max(2px, 0.5vmin) solid rgba(255, 255, 255, 0.4); /* Brighter outline */
-  outline-offset: calc(-1 * max(2px, 0.5vmin));
-}
-.theme-minimalist-green .square.drag-over-valid {
-    background-color: rgba(189, 195, 158, 0.4); /* Faded light square color */
-}
-.theme-minimalist-green .square.drag-over-invalid {
-     background-color: rgba(110, 54, 54, 0.4); /* Dark redish tint */
-}
-
-
-/* Captured Pieces Area */
-.theme-minimalist-green .captured-pieces { background-color: #3a3a3a; }
-.theme-minimalist-green .captured-pieces .piece-icon svg {
-    /* Ensure captured icons have same fill/stroke behavior */
-}
-
-
-/* Buttons */
-.theme-minimalist-green .control-button {
-    background-color: #5a5a5a;
-    color: #e0e0e0;
-    border-color: #777;
-}
-.theme-minimalist-green .control-button:hover {
-    background-color: #6a6a6a;
-    border-color: #888;
-}
-.theme-minimalist-green .control-button:disabled {
-    background-color: #4a4a4a;
-    color: #888;
-    border-color: #666;
 }
