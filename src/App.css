@@ -1,0 +1,178 @@
+/* Basic Reset & Body */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f0f0f0; /* Light background for the page */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align to top */
+  min-height: 100vh;
+  padding-top: 20px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 900px; /* Max width for the game area */
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.game-area {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align captured pieces zones with top of board */
+  width: 100%;
+  gap: 20px; /* Space between captured pieces and board */
+}
+
+.board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.status-bar {
+    width: 100%;
+    max-width: 480px; /* Match board width */
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #555;
+    box-sizing: border-box;
+}
+
+.chessboard {
+  width: 480px; /* Standard size, adjust as needed */
+  height: 480px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border: 2px solid #555; /* Border around the board */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.square {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative; /* Needed for absolute positioning of indicators */
+  cursor: pointer;
+}
+
+.square.light {
+  background-color: #f0d9b5; /* Light square color */
+}
+
+.square.dark {
+  background-color: #b58863; /* Dark square color */
+}
+
+.square.selected {
+  background-color: rgba(255, 255, 0, 0.5); /* Yellow highlight for selected */
+}
+
+/* Minimal legal move indicator */
+.legal-move-indicator {
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  background-color: rgba(0, 0, 0, 0.2); /* Subtle dark circle */
+  border-radius: 50%;
+  pointer-events: none; /* Don't interfere with clicks */
+}
+
+/* Alternative legal move highlight (outline) */
+/*
+.square.legal-move::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  pointer-events: none;
+}
+*/
+
+.piece {
+  font-size: 36px; /* Adjust size as needed */
+  user-select: none; /* Prevent text selection */
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.white-piece {
+    color: #ffffff; /* White pieces */
+    /* Add stroke for better visibility on light squares if needed */
+    /* -webkit-text-stroke: 1px black;
+    text-stroke: 1px black; */
+}
+
+.black-piece {
+    color: #000000; /* Black pieces */
+}
+
+/* Captured Pieces Display */
+.captured-pieces {
+  width: 80px; /* Adjust width as needed */
+  min-height: 480px; /* Match board height */
+  background-color: #e9e9e9;
+  padding: 10px 5px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap; /* Allow wrapping if many pieces */
+  align-content: flex-start;
+  gap: 4px; /* Spacing between icons */
+}
+
+.captured-pieces .piece-icon {
+    font-size: 20px; /* Smaller icons */
+    line-height: 1;
+}
+
+.new-game-button {
+    margin-top: 15px;
+    padding: 8px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.new-game-button:hover {
+    background-color: #5a6268;
+}
+
+
+/* Add simple Theme support example */
+/*
+body.dark-theme { background-color: #333; }
+.dark-theme h1 { color: #eee; }
+.dark-theme .status-bar { background-color: #555; color: #ddd; }
+.dark-theme .chessboard { border-color: #888; }
+.dark-theme .square.light { background-color: #a0a0a0; }
+.dark-theme .square.dark { background-color: #606060; }
+.dark-theme .captured-pieces { background-color: #444; }
+.dark-theme .new-game-button { background-color: #888; }
+.dark-theme .new-game-button:hover { background-color: #777; }
+*/
