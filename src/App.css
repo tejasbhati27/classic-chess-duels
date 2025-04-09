@@ -1,75 +1,71 @@
-/* === Base Styles === */
-body {
+/* === Global Reset & Full Screen Setup === */
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Align to top */
-  min-height: 100vh;
-  padding-top: 20px;
-  transition: background-color 0.3s ease; /* Theme transition */
+  padding: 0;
 }
 
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Prevent scrollbars on the body */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === App Container === */
 .app {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  height: 100%;
   width: 100%;
-  max-width: 950px; /* Wider to accommodate captured pieces comfortably */
-  padding: 0 10px; /* Add padding for smaller screens */
-  box-sizing: border-box;
+  transition: background-color 0.3s ease;
 }
 
 h1 {
-  margin-bottom: 15px;
-  transition: color 0.3s ease; /* Theme transition */
+  text-align: center;
+  padding: 5px 0;
+  font-size: clamp(1.2rem, 3vmin, 1.8rem); /* Responsive font size */
+  flex-shrink: 0; /* Prevent shrinking */
+  transition: color 0.3s ease;
+  user-select: none;
 }
 
+/* === Game Area Layout === */
 .game-area {
+  flex-grow: 1; /* Takes remaining vertical space */
   display: flex;
+  /* Default: Horizontal layout for wider screens */
+  flex-direction: row;
   justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  gap: 15px; /* Space between captured pieces and board */
+  align-items: center; /* Center board vertically */
+  padding: 10px;
+  gap: 15px;
+  overflow: hidden; /* Prevent internal scrolling */
 }
 
 .board-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.status-bar {
-  width: 100%;
-  min-height: 30px; /* Ensure consistent height */
-  padding: 5px 10px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9em;
-  box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease; /* Theme transition */
-}
-.status-bar .status-message {
-    font-weight: bold;
+  justify-content: center;
+  /* Let the board determine the container size */
 }
 
 .chessboard {
-  /* Adjust size as needed, using aspect-ratio is good for responsiveness */
-  width: clamp(300px, 90vmin, 520px);
-  aspect-ratio: 1 / 1; /* Maintain square shape */
+  /* Dynamically sized board based on viewport height/width */
+  /* Max size 520px, min size 280px, scales with 90% of smallest viewport dimension */
+  --board-size: clamp(280px, 90vmin, 600px);
+  width: var(--board-size);
+  height: var(--board-size);
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  border: 3px solid; /* Border color set by theme */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.3s ease; /* Theme transition */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border: 3px solid; /* Color set by theme */
+  transition: border-color 0.3s ease;
+  position: relative; /* For absolute positioning inside if needed */
 }
 
 .square {
@@ -77,167 +73,259 @@ h1 {
   justify-content: center;
   align-items: center;
   position: relative;
-  cursor: grab; /* Indicate draggable potential */
-  transition: background-color 0.2s ease; /* Smooth background changes */
+  cursor: grab;
+  transition: background-color 0.15s ease;
+  overflow: hidden; /* Prevent pieces slightly overflowing */
 }
 .square:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
-/* === Piece Styles (Consistent Black & White) === */
+/* === Piece Styling (SVG) === */
 .piece {
-  font-size: clamp(28px, 7vmin, 48px); /* Responsive font size */
+  /* Size relative to the square (which is 1/8th of board size) */
+  width: 85%;
+  height: 85%;
   user-select: none;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.2s ease-out, transform 0.2s ease-out; /* Animation */
-  z-index: 10; /* Make sure pieces are above indicators */
-  pointer-events: none; /* Pieces themselves shouldn't block square events */
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  z-index: 10;
+  pointer-events: none; /* Let square handle events */
 }
 
-.piece.hidden { /* Used during drag start for visual feedback */
-    opacity: 0.4;
+.piece svg {
+  width: 100%;
+  height: 100%;
+  display: block; /* Remove extra space below inline SVGs */
+  /* Drop shadow for depth */
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
 }
 
-/* !! Force Black and White Pieces !! */
-.piece.white-piece {
-    color: #ffffff;
-    /* Optional subtle stroke for contrast on light squares */
-    /* -webkit-text-stroke: 0.5px black;
-       text-stroke: 0.5px black; */
+/* Colors will be set via fill in the theme */
+.piece.white-piece svg { }
+.piece.black-piece svg { }
+
+.piece.hidden {
+  opacity: 0.3;
+  transform: scale(0.95);
 }
 
-.piece.black-piece {
-    color: #000000;
-     /* Optional subtle stroke for contrast on dark squares */
-    /* -webkit-text-stroke: 0.5px white;
-       text-stroke: 0.5px white; */
+/* === Interaction & Status === */
+.status-bar {
+  width: 100%; /* Match board width */
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: clamp(0.75rem, 2vmin, 0.9rem);
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+.status-bar .status-message {
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-/* === Interaction Styles === */
 .square.selected {
-  /* Use outline instead of background to not clash with drop targets */
-  outline: 3px solid rgba(255, 215, 0, 0.7); /* Gold outline */
-  outline-offset: -3px;
-  z-index: 5; /* Bring selected outline above neighbours */
+  outline: max(2px, 0.5vmin) solid rgba(255, 215, 0, 0.8); /* Responsive outline */
+  outline-offset: calc(-1 * max(2px, 0.5vmin));
+  z-index: 5;
 }
 
-/* Legal Move Indicator (Dot) */
 .legal-move-indicator {
   position: absolute;
-  width: 25%;
-  height: 25%;
+  /* Responsive indicator size */
+  width: clamp(8px, 3vmin, 15px);
+  height: clamp(8px, 3vmin, 15px);
   border-radius: 50%;
   pointer-events: none;
   opacity: 0.4;
-  transition: background-color 0.3s ease; /* Theme transition */
+  transition: background-color 0.3s ease;
+  z-index: 1; /* Below pieces */
 }
 
-/* Drag and Drop Highlighting */
 .square.drag-over-valid {
-    background-color: rgba(0, 255, 0, 0.3); /* Green tint for valid drop */
+  background-color: rgba(30, 180, 30, 0.3);
 }
 .square.drag-over-invalid {
-     background-color: rgba(255, 0, 0, 0.3); /* Red tint for invalid drop */
-     cursor: no-drop;
+  background-color: rgba(220, 40, 40, 0.3);
+  cursor: no-drop;
 }
 
-/* === Captured Pieces Styles === */
+/* === Captured Pieces === */
 .captured-pieces {
-  width: 60px; /* Slightly narrower */
-  min-height: clamp(300px, 90vmin, 520px); /* Match board height */
-  padding: 10px 5px;
+  padding: 5px;
   border-radius: 4px;
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 4px;
-  transition: background-color 0.3s ease; /* Theme transition */
+  gap: max(2px, 0.5vmin); /* Responsive gap */
+  transition: background-color 0.3s ease;
+  overflow: hidden; /* Hide overflow if too many pieces */
+  flex-shrink: 1; /* Allow shrinking */
+  min-width: 30px; /* Ensure it doesn't collapse completely */
+}
+/* Horizontal Layout (Default) */
+.captured-pieces.horizontal {
+    flex-direction: row;
+    flex-wrap: wrap; /* Wrap pieces */
+    align-content: flex-start;
+    justify-content: flex-start;
+    height: clamp(40px, 10vmin, 60px); /* Fixed height for horizontal */
+    width: var(--board-size); /* Match board width */
+    margin: 5px 0; /* Add margin when horizontal */
+}
+/* Vertical Layout (Used in row flex) */
+.captured-pieces.vertical {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    width: clamp(40px, 10vmin, 60px); /* Fixed width for vertical */
+    height: var(--board-size); /* Match board height */
 }
 
 .captured-pieces .piece-icon {
-    font-size: clamp(16px, 4vmin, 24px); /* Responsive captured icons */
-    line-height: 1;
-    opacity: 0.8;
-     /* Ensure captured pieces also use forced B&W */
-    &.white-piece { color: #fff; }
-    &.black-piece { color: #000; }
+  /* Smaller icons for captured pieces */
+  width: clamp(16px, 4vmin, 24px);
+  height: clamp(16px, 4vmin, 24px);
+  opacity: 0.9;
+}
+.captured-pieces .piece-icon svg {
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.2));
 }
 
-/* === Buttons === */
+/* === Controls === */
 .controls {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    justify-content: center;
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .control-button {
-    padding: 8px 15px;
-    font-size: 0.9em;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 5px 10px;
+  font-size: clamp(0.75rem, 2vmin, 0.9rem);
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .control-button:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 .control-button:active {
-     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+.control-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
-/* === Theme Switching Section === */
 .theme-selector {
-    margin-top: 10px;
     display: flex;
-    gap: 8px;
+    gap: 5px;
+}
+
+/* ================================== */
+/*       THEME: Chess.com Style       */
+/* ================================== */
+.theme-chesscom { background-color: #302E2C; } /* Dark background */
+.theme-chesscom h1 { color: #cccccc; }
+.theme-chesscom .status-bar { background-color: #444240; color: #cccccc; }
+.theme-chesscom .chessboard { border-color: #4a4846; }
+
+/* Board Colors */
+.theme-chesscom .square.light { background-color: #EBECD0; } /* Beige/Cream */
+.theme-chesscom .square.dark { background-color: #779556; }  /* Muted Green */
+
+.theme-chesscom .legal-move-indicator { background-color: rgba(40, 40, 40, 0.4); }
+
+/* SVG Piece Colors */
+.theme-chesscom .piece.white-piece svg { fill: #FFFFFF; }
+.theme-chesscom .piece.black-piece svg { fill: #202020; } /* Very dark grey/black */
+
+/* Captured Pieces Area */
+.theme-chesscom .captured-pieces { background-color: #3a3836; }
+.theme-chesscom .captured-pieces .piece-icon svg { /* Same fill as board pieces */ }
+
+/* Buttons */
+.theme-chesscom .control-button {
+    background-color: #555250;
+    color: #e0e0e0;
+    border-color: #666361;
+}
+.theme-chesscom .control-button:hover {
+    background-color: #605d5b;
+    border-color: #777472;
+}
+.theme-chesscom .control-button:disabled {
+    background-color: #4a4846;
+    color: #888;
+    border-color: #555250;
+}
+
+/* === (Keep other theme definitions below if desired) === */
+/* .theme-light { ... } */
+/* .theme-dark { ... } */
+/* .theme-classic { ... } */
+
+
+/* === Responsive Adjustments === */
+
+/* Medium screens (Tablets/Small Laptops) - Board still central */
+@media (max-width: 768px) {
+    .game-area {
+        /* Stack captured vertically beside board */
+        align-items: center; /* Center vertically too */
+    }
+     /* Captured pieces zones remain vertical */
+     .captured-pieces.horizontal { display: none; } /* Hide horizontal if using vertical */
+     .captured-pieces.vertical { display: flex; }
 }
 
 
-/* ================================== */
-/*           THEME: Light             */
-/* ================================== */
-.theme-light { background-color: #f7f7f7; }
-.theme-light h1 { color: #333; }
-.theme-light .status-bar { background-color: #e0e0e0; color: #444; }
-.theme-light .chessboard { border-color: #888; }
-.theme-light .square.light { background-color: #f0d9b5; }
-.theme-light .square.dark { background-color: #b58863; }
-.theme-light .legal-move-indicator { background-color: rgba(0, 0, 0, 0.3); } /* Darker dot */
-.theme-light .captured-pieces { background-color: #eaeaea; }
-.theme-light .control-button { background-color: #6c757d; color: white; }
-.theme-light .control-button:hover { background-color: #5a6268; }
+/* Small screens (Mobile) */
+@media (max-width: 550px) {
+     h1 { padding: 3px 0; }
+     .game-area {
+        /* Stack everything vertically */
+        flex-direction: column;
+        justify-content: flex-start; /* Align top */
+        align-items: center; /* Center horizontally */
+        padding: 5px;
+        gap: 5px;
+        overflow-y: auto; /* Allow scroll if needed on very small screens */
+     }
+     /* Put captured pieces above/below board */
+     .captured-pieces.vertical { display: none; } /* Hide vertical */
+     .captured-pieces.horizontal {
+         display: flex;
+         order: -1; /* Default: Black's captures above board */
+         width: 95%; /* Slightly less than board */
+         max-width: var(--board-size);
+         height: auto; /* Auto height */
+         min-height: 30px;
+         margin-bottom: 5px;
+     }
+      .captured-pieces.captured-by-black { order: -1; margin-bottom: 5px; margin-top: 0;} /* Black's captures (White lost) */
+      .captured-pieces.captured-by-white { order: 1; margin-top: 5px; margin-bottom: 0;} /* White's captures (Black lost) */
 
+      .board-container { order: 0; } /* Board is central */
+}
 
-/* ================================== */
-/*            THEME: Dark             */
-/* ================================== */
-.theme-dark { background-color: #2c2f33; }
-.theme-dark h1 { color: #e0e0e0; }
-.theme-dark .status-bar { background-color: #4f545c; color: #e0e0e0; }
-.theme-dark .chessboard { border-color: #666; }
-.theme-dark .square.light { background-color: #a0a0a0; } /* Grey light squares */
-.theme-dark .square.dark { background-color: #6a6a6a; } /* Darker grey dark squares */
-.theme-dark .legal-move-indicator { background-color: rgba(255, 255, 255, 0.3); } /* Lighter dot */
-.theme-dark .captured-pieces { background-color: #40444b; }
-.theme-dark .control-button { background-color: #7289da; color: white; } /* Discord-like blue */
-.theme-dark .control-button:hover { background-color: #677bc4; }
-
-
-/* ================================== */
-/*          THEME: Forest             */
-/* ================================== */
-.theme-forest { background-color: #e4efe1; } /* Light leafy green background */
-.theme-forest h1 { color: #2f4f2f; } /* Dark Green */
-.theme-forest .status-bar { background-color: #a4b89a; color: #2f3e2f; } /* Muted green */
-.theme-forest .chessboard { border-color: #556b2f; } /* Dark Olive Green */
-.theme-forest .square.light { background-color: #e8e8d8; } /* Beige/Cream */
-.theme-forest .square.dark { background-color: #7a9467; } /* Forest Green */
-.theme-forest .legal-move-indicator { background-color: rgba(47, 79, 47, 0.4); } /* Dark Green Dot */
-.theme-forest .captured-pieces { background-color: #c1cec0; } /* Lighter muted green */
-.theme-forest .control-button { background-color: #8fbc8f; color: #2f4f2f; } /* Dark Sea Green */
-.theme-forest .control-button:hover { background-color: #7aa97a; }
+/* Very small screens adjustment */
+@media (max-height: 450px) and (orientation: landscape) {
+    /* If screen is very short but wide, force horizontal layout */
+     .game-area { flex-direction: row; align-items: center;}
+     .captured-pieces.horizontal { display: none; }
+     .captured-pieces.vertical { display: flex; }
+     h1 { display: none; } /* Hide title to save space */
+}
